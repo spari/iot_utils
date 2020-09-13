@@ -97,7 +97,7 @@ void MqttUtils::log_mqtt(const char *fmt, ...)
    va_list args;
    va_start(args, fmt);
 
-   if (mqtt_client.connected()) {
+   if (reconnect()) {
       char buff[MQTT_BUFF_SIZE];
       vsnprintf(buff, MQTT_BUFF_SIZE, fmt, args);
 
