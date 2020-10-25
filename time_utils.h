@@ -15,8 +15,8 @@ class TimeUtils {
 
       TimeUtils();
 
-      void init(const struct time_conf *conf);
-      void reconnect(uint8_t ntimes);
+      void init(const struct time_conf *conf, int retries=60);
+      void reconnect(uint8_t retries);
       String ctime_str();
       String uptime_str();
 

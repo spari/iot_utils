@@ -11,7 +11,7 @@ TimeUtils::TimeUtils() {}
 
 static bool local_time_set = false;
 
-void TimeUtils::init(const struct time_conf *conf)
+void TimeUtils::init(const struct time_conf *conf, int retries)
 {
    Serial.println("Intializing TimeUtils.");
 
@@ -20,22 +20,22 @@ void TimeUtils::init(const struct time_conf *conf)
    configTime(0, 0, conf->ntp_server, "pool.ntp.org");
    setenv("TZ", conf->timezone, 1);
 
-   reconnect(60);
+   reconnect(retries);
 }
 
 /*
  * Note: If fails to obtain time, then retry again in loop() or a timer 
  * callback instead of waiting indefinitely during boot. Use smaller 
- * ntimes in timer callback so that it is non-blocking. 
+ * retries in timer callback so that it is non-blocking. 
  */
-void TimeUtils::reconnect(uint8_t ntimes) 
+void TimeUtils::reconnect(uint8_t retries) 
 {
    time_t time0;
    extern PubSubClient mqtt_client;
 
    if (!local_time_set) {
       Serial.print("  Connecting to NTP server '"+ String(conf->ntp_server) + "'.");
-      for (int i=0; i<ntimes; i++) {
+      for (int i=0; i<retries; i++) {
          if (connect()) {
             Serial.println(" NTP connected.");
             return;
@@ -58,10 +58,11 @@ bool TimeUtils::connect()
 {
    time_t time0;
 
+   // If time is already set, don't unecessarily retry.
+   if (local_time_set) return true; 
+
    if ((time0 = time(nullptr)) > 947000000) {
-      if (!local_time_set) {
-         set_local_time(time0); 
-      }
+      set_local_time(time0); 
       return true;
    }
    else {
