@@ -24,7 +24,7 @@ class MqttUtils {
 
       MqttUtils();
 
-      void init(const struct mqtt_conf *conf);
+      void init(const struct mqtt_conf *conf, std::function<void()> callback = nullptr);
       bool reconnect();
       void loop();
 
@@ -37,9 +37,11 @@ class MqttUtils {
 
       static void subscribe_topics();
       static void callback(const char* topic, byte* payload_bytes, unsigned int size);
+      void setRetryCallback(std::function<void()> retry_callback);
 
    private:
       bool initialized = false;
+      std::function<void()> retry_callback;
 };
 
 #endif

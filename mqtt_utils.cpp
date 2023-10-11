@@ -10,11 +10,12 @@ PubSubClient mqtt_client(wifi_client);
 
 MqttUtils::MqttUtils() {}
 
-void MqttUtils::init(const struct mqtt_conf *conf)
+void MqttUtils::init(const struct mqtt_conf *conf, std::function<void()> retry_callback)
 {
    Serial.println("Intializing MqttUtils.");
 
    this->conf = conf;
+   this->retry_callback = retry_callback;
 
    mqtt_client.setServer(conf->server, conf->port);
    mqtt_client.setCallback(callback);
@@ -22,6 +23,10 @@ void MqttUtils::init(const struct mqtt_conf *conf)
    reconnect();
 
    initialized = true;
+}
+
+void MqttUtils::setRetryCallback(std::function<void()> retry_callback) {
+  this->retry_callback = retry_callback;
 }
 
 void MqttUtils::loop()
@@ -51,6 +56,8 @@ bool MqttUtils::reconnect()
 
    mqtt_client.connect(conf->client_id, conf->username, conf->password);
 
+   if (this->retry_callback) retry_callback();
+
    if (mqtt_client.connected()) {
       Serial.println(" MQTT connected.");
       subscribe_topics();
@@ -61,7 +68,6 @@ bool MqttUtils::reconnect()
       return false;
    }
 }
-
 
 const int MQTT_TOPIC_SIZE = 80;
 

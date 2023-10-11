@@ -1,8 +1,13 @@
 # iot_utils
 Some convenience wrappers around third-party libraries.
-Originally created for projects [spari/irrigation](https://github.com/spari/irrigation) and [spari/motor](https://github.com/spari/motor).
 
-## Dependencies 
+## History
+| Date       | Version | Description                                                  |
+| ---------- | ------- | ------------------------------------------------------------ |
+| 2020-09-13 | 1.0     | - First working version.                                     |
+| 2021-01-11 | 1.1     | - Added callbacks for retry of NTP and MQTT.                 |
+
+## Dependencies
 
 ### Third-Party Libraries
 - WiFiClient

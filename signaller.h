@@ -9,7 +9,7 @@
  */
 struct signaller_gpio {
    uint8_t sysok_led;  // System ok.
-   uint8_t status_led; // Warning Codes and Notifications.
+   uint8_t status_led; // Status Codes and Notifications.
    uint8_t buzzer;     // Set to -1 if none.
 };
 
@@ -20,9 +20,10 @@ class Signaller {
       Signaller();
 
       void init();
-      void ok();
-      void warn(uint8_t code, int num_secs_approx=1);
+      void smoke_signal(uint8_t num);
+      void alert(uint8_t nblinks); 
       void notify(int num_secs);
+      void ok();
 
    private:
       /*
@@ -33,8 +34,6 @@ class Signaller {
       const boolean LED_ON = LOW;
       const boolean BUZZER_OFF = HIGH;
       const boolean BUZZER_ON = LOW;
-
-      void smoke_signal(uint8_t num);
 };
 
 #endif

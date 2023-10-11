@@ -38,12 +38,12 @@ void Signaller::init()
  *
  * Used to blink error/status code for field diagnostics.
  */
-void Signaller::smoke_signal(uint8_t num)
+void Signaller::smoke_signal(uint8_t code)
 {
-   if (num > 15) return;
+   if (code > 15) return;
 
    for (int bits=3; bits>-1; bits--) {
-      if (num & (1<<bits)) {
+      if (code & (1<<bits)) {
          digitalWrite(gpio.status_led, LED_ON);
          delay(500);
          digitalWrite(gpio.status_led, LED_OFF);
@@ -56,33 +56,20 @@ void Signaller::smoke_signal(uint8_t num)
          delay(450);
       }
    }
-   delay(1000);
+   delay(2000);
 }
 
-/*
- * This function lasts approximately num_secs seconds.
- */
-void Signaller::warn(uint8_t code, int num_secs)
+void Signaller::alert(uint8_t nblinks)
 {
-   if (num_secs < 4) num_secs = 4;
+   const boolean LED_OFF = HIGH;
+   const boolean LED_ON = LOW;
 
-   // Scale-down num_secs by 4, as smoke_signal() lasts 4 seconds.
-   for (int i=0; i<num_secs/4; i++) {
-      smoke_signal(code);
+   for (int i=0; i<nblinks; i++) {
+      digitalWrite(gpio.status_led, LED_ON);
+      delay(100);
+      digitalWrite(gpio.status_led, LED_OFF);
+      delay(400);
    }
-}
-
-/*
- * This function lasts 1 second.
- */
-void Signaller::ok()
-{
-   //noInterrupts();
-   digitalWrite(gpio.sysok_led, LED_ON);
-   delay(100);
-   digitalWrite(gpio.sysok_led, LED_OFF);
-   delay(900);
-   //interrupts();
 }
 
 /*
@@ -95,13 +82,24 @@ void Signaller::notify(int num_secs)
    for (int i=0; i<num_secs; i++) {
       for (int j=0; j<blinks_per_sec; j++) {
          if (gpio.buzzer != -1) digitalWrite(gpio.buzzer, BUZZER_ON);
-         digitalWrite(gpio.status_led, LED_ON);
+         digitalWrite(gpio.sysok_led, LED_ON);
          delay(50);
-         digitalWrite(gpio.status_led, LED_OFF);
+         digitalWrite(gpio.sysok_led, LED_OFF);
          if (gpio.buzzer != -1) digitalWrite(gpio.buzzer, BUZZER_OFF);
          delay(75);
       }
       delay(500);
    }
+}
+
+/*
+ * This function lasts 1 second.
+ */
+void Signaller::ok()
+{
+   digitalWrite(gpio.sysok_led, LED_ON);
+   delay(100);
+   digitalWrite(gpio.sysok_led, LED_OFF);
+   delay(900);
 }
 

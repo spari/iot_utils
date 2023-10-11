@@ -15,15 +15,16 @@ class TimeUtils {
 
       TimeUtils();
 
-      void init(const struct time_conf *conf, int retries=60);
+      void init(const struct time_conf *conf, std::function<void()> retry_callback = nullptr, int retries=60);
       void reconnect(uint8_t retries);
       String ctime_str();
       String uptime_str();
+      void setRetryCallback(std::function<void()> retry_callback);
 
    private:
       bool connect();
       void set_local_time(time_t time0);
-      void fast_blink(int ntimes);
+      std::function<void()> retry_callback;
 };
 
 #endif

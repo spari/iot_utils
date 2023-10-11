@@ -11,16 +11,22 @@ TimeUtils::TimeUtils() {}
 
 static bool local_time_set = false;
 
-void TimeUtils::init(const struct time_conf *conf, int retries)
+void TimeUtils::init(const struct time_conf *conf, std::function<void()> retry_callback, int retries)
 {
    Serial.println("Intializing TimeUtils.");
 
    this->conf = conf;
+   this->retry_callback = retry_callback;
 
-   configTime(0, 0, conf->ntp_server, "pool.ntp.org");
+   //configTime(0, 0, conf->ntp_server, "pool.ntp.org");
+   configTime(0, 0, conf->ntp_server);
    setenv("TZ", conf->timezone, 1);
 
    reconnect(retries);
+}
+
+void TimeUtils::setRetryCallback(std::function<void()> retry_callback) {
+  this->retry_callback = retry_callback;
 }
 
 /*
@@ -36,11 +42,12 @@ void TimeUtils::reconnect(uint8_t retries)
    if (!local_time_set) {
       Serial.print("  Connecting to NTP server '"+ String(conf->ntp_server) + "'.");
       for (int i=0; i<retries; i++) {
+         if (retry_callback) retry_callback();
          if (connect()) {
             Serial.println(" NTP connected.");
             return;
          }
-         fast_blink(2); 
+         delay(1000);
       }
       Serial.println(" NTP connection failed.");
    }
@@ -58,7 +65,11 @@ bool TimeUtils::connect()
 {
    time_t time0;
 
-   // If time is already set, don't unecessarily retry.
+   /*
+    * If time is already set, don't unecessarily retry.
+    * It will have a chance to synchronize with NTP upon startup,
+    * given the occassional power cuts at least once every few months.
+    */
    if (local_time_set) return true; 
 
    if ((time0 = time(nullptr)) > 947000000) {
@@ -120,17 +131,3 @@ String TimeUtils::uptime_str()
 
    return String(uptime_str);
 }
-
-void TimeUtils::fast_blink(int ntimes)
-{
-   const boolean LED_OFF = HIGH;
-   const boolean LED_ON = LOW;
-
-   for (int i=0; i<ntimes; i++) {
-      digitalWrite(BUILTIN_LED, LED_ON);
-      delay(25);
-      digitalWrite(BUILTIN_LED, LED_OFF);
-      delay(225);
-   }
-}
-
